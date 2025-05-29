@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IPUConfig</class>
+ <widget class="QWidget" name="IPUConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>IPU Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_Cameras">
+     <item>
+      <widget class="QGroupBox" name="groupBoxFrontCamera">
+       <property name="title">
+        <string>전방 카메라 설정</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout_FrontCamera">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelFrontLeft">
+          <property name="text">
+           <string>좌측 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditFrontLeft"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelFrontRight">
+          <property name="text">
+           <string>우측 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditFrontRight"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelFrontTop">
+          <property name="text">
+           <string>상단 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEditFrontTop"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelFrontBottom">
+          <property name="text">
+           <string>하단 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEditFrontBottom"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxRearCamera">
+       <property name="title">
+        <string>후방 카메라 설정</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout_RearCamera">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelRearLeft">
+          <property name="text">
+           <string>좌측 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditRearLeft"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelRearRight">
+          <property name="text">
+           <string>우측 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditRearRight"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelRearTop">
+          <property name="text">
+           <string>상단 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEditRearTop"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelRearBottom">
+          <property name="text">
+           <string>하단 카메라:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEditRearBottom"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+   <layout class="QHBoxLayout" name="horizontalLayout_VVP_VDU">
+    <item>
+        <widget class="QGroupBox" name="groupBoxVVPDevice">
+            <property name="title">
+                <string>VVP Device Settings</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout_VVPDevice">
+                <item row="0" column="0">
+                <widget class="QLabel" name="labelVVPDeviceIP">
+                    <property name="text">
+                    <string>IP Address:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="0" column="1">
+                <widget class="QLineEdit" name="lineEditVVPDeviceIP">
+                    <property name="placeholderText">
+                        <string>Enter MCU Device IP</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="0">
+                <widget class="QLabel" name="labelVVPDevicePort">
+                    <property name="text">
+                    <string>Port:</string>
+                    </property>
+                </widget>CMediator::ServiceStar
+                </item>
+                <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBoxVVPDevicePort">
+                    <property name="minimum">
+                    <number>1</number>
+                    </property>
+                    <property name="maximum">
+                    <number>65535</number>
+                    </property>
+                </widget>
+                </item>
+            </layout>
+        </widget>
+    </item>
+    <item>
+        <widget class="QGroupBox" name="groupBoxVDU">
+            <property name="title">
+                <string>VDU Device Settings</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout_VDUDevice">
+                <item row="0" column="0">
+                <widget class="QLabel" name="labelVDUIP">
+                    <property name="text">
+                    <string>VDU Device IP:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="0" column="1">
+                <widget class="QLineEdit" name="lineEditVduDeviceIP">
+                    <property name="placeholderText">
+                        <string>Enter VDU Server</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="0">
+                <widget class="QLabel" name="labelVDUPort">
+                    <property name="text">
+                    <string>VDU Device Port:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBoxVduDevicePort">
+                    <property name="minimum">
+                    <number>1</number>
+                    </property>
+                    <property name="maximum">
+                    <number>65535</number>
+                    </property>
+                    <property name="value">
+                    <number>20355</number>
+                    </property>
+                </widget>
+                </item>
+            </layout>
+        </widget>
+    </item>
+   </layout>
+   </item>
+   <item>
+   <layout class="QHBoxLayout" name="horizontalLayout_SERVER">
+    <item>
+        <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+                <string>통합 영상 서버</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout_UnityServer">
+                <item row="0" column="0">
+                <widget class="QLabel" name="labelUnityServerIP">
+                    <property name="text">
+                    <string>IP Address:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="0" column="1">
+                <widget class="QLineEdit" name="lineEditUnityServerIP">
+                    <property name="placeholderText">
+                        <string>Enter 통합서버 IP</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="0">
+                <widget class="QLabel" name="labelUnityServerPort">
+                    <property name="text">
+                    <string>Port:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBoxUnityServerPort">
+                    <property name="minimum">
+                    <number>1</number>
+                    </property>
+                    <property name="maximum">
+                    <number>65535</number>
+                    </property>
+                </widget>
+                </item>
+            </layout>
+        </widget>
+    </item>
+    <item>
+        <widget class="QGroupBox" name="groupBoxRemoteServer">
+            <property name="title">
+                <string>원격 서버</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout_RemoteServer">
+                <item row="0" column="0">
+                <widget class="QLabel" name="labelRemoteServerIP">
+                    <property name="text">
+                    <string>원격서버 IP:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="0" column="1">
+                <widget class="QLineEdit" name="lineEditRemoteServerIP">
+                    <property name="placeholderText">
+                        <string>Enter 원격서버 IP</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="0">
+                <widget class="QLabel" name="labelRemoteServerPort">
+                    <property name="text">
+                    <string>원격서버 Port:</string>
+                    </property>
+                </widget>
+                </item>
+                <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBoxRemoteServerPort">
+                    <property name="minimum">
+                    <number>1</number>
+                    </property>
+                    <property name="maximum">
+                    <number>65535</number>
+                    </property>
+                    <property name="value">
+                    <number>20355</number>
+                    </property>
+                </widget>
+                </item>
+            </layout>
+        </widget>
+    </item>
+   </layout>
+   </item>
+
+   <item>
+    <widget class="QGroupBox" name="groupBoxLic">
+     <property name="title">
+      <string>LIC Settings</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="labelPort">
+        <property name="text">
+         <string>Port:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinBoxPort">
+        <property name="maximum">
+         <number>255</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="labelBaud">
+        <property name="text">
+         <string>Baud Rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboBoxBaud">
+        <item>
+         <property name="text">
+          <string>9600</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>19200</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>38400</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>57600</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>115200</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonSave">
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonApply">
+       <property name="text">
+        <string>Apply</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

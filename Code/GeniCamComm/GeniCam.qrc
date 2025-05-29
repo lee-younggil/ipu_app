@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/GeniCamComm" >
+        <file>res/CamSource.ico</file>
+        <file>res/play.bmp</file>
+        <file>res/stop.bmp</file>
+    </qresource>
+</RCC>
