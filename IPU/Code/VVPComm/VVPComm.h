@@ -1,5 +1,5 @@
-#ifndef CVVPCOMM_H
-#define CVVPCOMM_H
+﻿#ifndef VVPCOMM_H
+#define VVPCOMM_H
 
 #include <QObject>
 #include <QTcpSocket>
@@ -29,12 +29,10 @@ public:
     bool IsConnected() const;
 
 private slots:
-    void CheckConnection();
-    //void DoWorkSendThread();
-    void OnConnected();
-    void OnReadyRead();      // Slot to handle readyRead signal
-    void OnDisconnected();   // Slot to handle disconnected signal
-    void onTimeout();
+    void onCheckConnection();
+    void onConnected();
+    void onReadyRead();      // Slot to handle readyRead signal
+    void onDisconnected();   // Slot to handle disconnected signal
 
 signals:
     void finished();
@@ -77,4 +75,4 @@ enum tag_DEVICE_CODE
     qint64 m_lastLongHeartbeatTime;  // 마지막 1분 하트비트 전송 시간
 };
 
-#endif // CVVPCOMM_H
+#endif // VVPCOMM_H

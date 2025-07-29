@@ -1,4 +1,4 @@
-#include "Log.h"
+﻿#include "Log.h"
 #include "Util/Util.h"
 #include "Code/Mediator.h"
 
@@ -28,7 +28,6 @@ CLog::~CLog(void)
 
 void CLog::initialization(void)
 {
-    // �ٸ� Ŭ���� initialization ���¿��� �α׿� �����ϱ� ���Ͽ� initialization �Լ������� ServiceStart ȣ��
     ServiceStart();
 }
 
@@ -37,7 +36,7 @@ bool CLog::ServiceStart(void)
     int arg = 0, nstate = 0, t_id = 0;
     void * t_ret = nullptr;
 
-    if( m_bLogThreadState == false ){
+    /*if( m_bLogThreadState == false ){
 
         nstate = pthread_create(&m_pThread, NULL, LogThread, (void *)&arg);
 
@@ -46,12 +45,12 @@ bool CLog::ServiceStart(void)
             qDebug() << "pthread_create error nstate : " << nstate;
         }
 
-        //nstate = pthread_join(t_id, &t_ret);
+        nstate = pthread_join(t_id, &t_ret);
         if(nstate != 0){
             //error log
             qDebug() << "log pthread_join error nstate : " << nstate << " t_id : " << t_id;
         }
-    }
+    }*/
 
     return true;
 }

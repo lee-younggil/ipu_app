@@ -1,4 +1,4 @@
-#include "CdsLicComm.h"
+﻿#include "CdsLicComm.h"
 #include <QDateTime>
 #include <arpa/inet.h>
 
@@ -125,12 +125,13 @@ void CCdsLicComm::decode(const QByteArray& data)
     }
     while(1){
         if (m_recvQueue.isEmpty())
-        {
             break;
-        }
+
         QByteArray dequeueData = m_recvQueue.dequeue();
         int length = dequeueData.size();
-        qDebug() << "CCdsLicComm decode in" << dequeueData.toHex(' ').toUpper();;
+        if (length == 0)
+            break;
+
         iStartSTX = dequeueData.indexOf(STX, currentIndex);
         if (iStartSTX == -1)
         {
@@ -182,11 +183,11 @@ void CCdsLicComm::decode(const QByteArray& data)
                 }
                 unsigned short usMsgID = pPacket->usMsgID;
                 
-                QString strLog;
-                strLog.append(QString("R[%1] ").arg(usMsgID, 4, 16, QChar('0')));
+                //QString strLog;
+                //strLog.append(QString("R[%1] ").arg(usMsgID, 4, 16, QChar('0')));
 
                 //QByteArray byteArray((char *)packetBuffer, packetLength);
-                //qDebug() << "CCdsLicComm decode" << strLog + byteArray.toHex(' ').toUpper();
+                //qDebug() << "CCdsLicComm decode1" << strLog + byteArray.toHex(' ').toUpper() << "length:"<< length << " packetLength:" << packetLength;
                 
                 
                 switch (usMsgID)

@@ -1,5 +1,5 @@
-#ifndef CCDSCOMM_H
-#define CCDSCOMM_H
+﻿#ifndef CDSCOMM_H
+#define CDSCOMM_H
 
 #include "Comm/SerialPort.h"
 #include "CompletionStruct.h"
@@ -107,4 +107,4 @@ public:
     QQueue<QByteArray> m_recvQueue; // Keep send queue if used elsewhere
 };
 
-#endif // CCDSCOMM_H
+#endif // CDSCOMM_H

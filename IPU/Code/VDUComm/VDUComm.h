@@ -1,5 +1,5 @@
-#ifndef CVDUCOMM_H
-#define CVDUCOMM_H
+﻿#ifndef VDUCOMM_H
+#define VDUCOMM_H
 
 #include <QObject>
 #include <QTcpSocket>
@@ -38,12 +38,12 @@ public:
     bool IsConnected() const;
 
 private slots:
-    void CheckConnection();
+    void onCheckConnection();
     //void DoWorkSendThread();
-    void OnConnected();
-    void OnReadyRead();      // Slot to handle readyRead signal
-    void OnDisconnected();   // Slot to handle disconnected signal
-    void onTimeout();
+    void onConnected();
+    void onReadyRead();      // Slot to handle readyRead signal
+    void onDisconnected();   // Slot to handle disconnected signal
+    void onCheckDIO();
 
 signals:
     void finished();
@@ -77,6 +77,7 @@ private:
     QTcpSocket* m_pClientSocket;
     QQueue<QByteArray> m_sendQueue; // Keep send queue if used elsewhere
     QTimer* m_pCheckConnectionTimer; // Timer for checking connection
+    QTimer* m_pCheckDIO;
 
     bool m_bRunning;
     bool m_bConnected;  // 연결 상태 플래그 추가
@@ -86,6 +87,10 @@ private:
     qint64 m_lastHeartbeatTime;  // 마지막 하트비트 전송 시간
     qint64 m_lastLongHeartbeatTime;  // 마지막 1분 하트비트 전송 시간
     int m_triggerNum; // Trigger number for sending to VDU
+    int m_lastDIOValue;
+    qint64 m_lastDIOTimestamp;
+    int testCnt;
+    QString m_laneClassification;
 };
 
-#endif // CVDUCOMM_H
+#endif // VDUCOMM_H

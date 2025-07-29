@@ -1,4 +1,4 @@
-#ifndef VDUDLG_H
+﻿#ifndef VDUDLG_H
 #define VDUDLG_H
 
 #include <QObject>
@@ -37,7 +37,6 @@ private slots:
     void Func1();
     void TestTriggerNum();
     void LineCmd();
-
 
 private:
     QTextEdit* m_textEdit;      // Original log display

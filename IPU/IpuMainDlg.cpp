@@ -1,4 +1,4 @@
-#include "IpuMainDlg.h"
+﻿#include "IpuMainDlg.h"
 
 #include <QGroupBox>
 #include <QMessageBox>
@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QSettings>
 
 #include <stdio.h>
 #include <assert.h>
@@ -92,10 +93,12 @@ void CIpuMainDlg::CreateLayout()
     m_pTabWidget->addTab(new FrontCamDlg(), tr("Front Cam"));
     m_pTabWidget->addTab(new RearCamDlg(),  tr("Rear Cam"));
     m_pTabWidget->addTab(new CdsLicDlg(),   tr("Lens Control"));
-    m_pTabWidget->addTab(new CIPUConfig(),  tr("Net Config"));
-    m_pTabWidget->addTab(new CdsLicDlg(),   "Serial");
-    m_pTabWidget->addTab(new CVVPDlg(),     "VVP");
-    m_pTabWidget->addTab(new CVDUDlg(),     "VDU");
+    m_pTabWidget->addTab(new CVVPDlg(),     "MCU");
+    // VDU 탭은 차로 분류가 multi일 때만 추가
+    if (CMediator::getInstance()->getConfig()->getLaneClassification() == "multi") {
+        m_pTabWidget->addTab(new CVDUDlg(),     "VDU");
+    }
+    m_pTabWidget->addTab(CMediator::getInstance()->getConfig(),  tr("Net Config"));
 
     CMediator::getInstance()->ServiceStart();
 

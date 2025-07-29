@@ -1,16 +1,59 @@
-#include "VDUComm.h"
+﻿#include "VDUComm.h"
 #include <QTcpSocket>
 #include <QQueue>
 #include <QThread>
 #include <arpa/inet.h>
+#include <gpiod.h>
+#include <QFile>
+#include <QDir>
 #include "Code/Mediator.h"
 #include "Util/Util.h"
 
-CVDUComm::CVDUComm() : m_pClientSocket(nullptr), m_pCheckConnectionTimer(nullptr), m_bConnected(false)
+CVDUComm::CVDUComm() 
+    :m_pClientSocket(nullptr), 
+    m_pCheckConnectionTimer(nullptr), 
+    m_pCheckDIO(nullptr), 
+    m_bConnected(false), 
+    m_lastDIOValue(1),
+    m_lastDIOTimestamp(0)
 {
     m_pCheckConnectionTimer = new QTimer(this);
-    connect(m_pCheckConnectionTimer, &QTimer::timeout, this, &CVDUComm::onTimeout);
+    connect(m_pCheckConnectionTimer, &QTimer::timeout, this, &CVDUComm::onCheckConnection);
+    m_pCheckDIO = new QTimer(this);
+    connect(m_pCheckDIO, &QTimer::timeout, this, &CVDUComm::onCheckDIO);
     m_bRunning = (false);
+
+    QDir PQ05("/sys/class/gpio/PQ.05");
+    if (PQ05.exists())
+    {
+        qDebug() << "/sys/class/gpio/PQ.05 exist folder";
+    }
+    else
+    {
+        QFile exportFile("/sys/class/gpio/export");
+        if (!exportFile.open(QIODevice::WriteOnly)) {
+            qDebug() << "Failed to open export for writing";
+        }
+        QTextStream out(&exportFile);
+        out << 453;
+        qDebug() << "453 create";
+        QThread::sleep(1);
+        exportFile.close();
+
+        QThread::sleep(2);
+    }
+    //direction 설정
+    QFile directionFile("/sys/class/gpio/PQ.05/direction");// /sys/class/gpio/PQ.05/direction
+    if (!directionFile.open(QIODevice::WriteOnly)) {
+        qDebug() << "Failed to open direction for writing";
+    }
+
+    QTextStream directionSetting(&directionFile);
+
+    //in 방향 설정
+    directionSetting << "in";
+    qDebug() << "direction in";
+
 }
 
 CVDUComm::~CVDUComm()
@@ -35,12 +78,22 @@ bool CVDUComm::ServiceStart()
 {
     m_bRunning = true;
     
+
+    m_laneClassification = CMediator::getInstance()->getConfig()->getLaneClassification();
+
+    QFile valueFile("/sys/class/gpio/PQ.05/value");
+    if (!valueFile.open(QIODevice::WriteOnly)) {
+        qDebug() << "Failed to open value for writing";
+    }
+    QThread::msleep(100);
+    valueFile.close();
+
     CreateSocket();
-    // StartAsyncReceive(); // Removed call
+
     // Connect socket signals directly here
-    connect(m_pClientSocket, &QTcpSocket::connected, this, &CVDUComm::OnConnected);
-    connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::OnReadyRead);
-    connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::OnDisconnected);
+    connect(m_pClientSocket, &QTcpSocket::connected, this, &CVDUComm::onConnected);
+    connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::onReadyRead);
+    connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::onDisconnected);
     
     ConnectToIPU();
     qDebug() << "CVDUComm::ServiceStart - Socket connected signal connected.";
@@ -50,16 +103,81 @@ bool CVDUComm::ServiceStart()
     m_lastHeartbeatTime = m_lastLongHeartbeatTime;
 
     m_pCheckConnectionTimer->start(5000);
+    m_pCheckDIO->start(1);
     
     return true;
 }
 
-void CVDUComm::onTimeout()
+void CVDUComm::onCheckDIO()
 {
-    // Handle timeout event
-    //qDebug() << "Timeout occurred!";
-    CheckConnection();
-    // Add your timeout handling code here
+    // Check the GPIO state
+    QFile valueFile("/sys/class/gpio/PQ.05/value");
+    if (!valueFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Failed to open value for reading";
+        return;
+    }
+
+    QTextStream value(&valueFile);
+    int gpioValue = 0;
+    value >> gpioValue;
+    valueFile.close();
+
+    if (m_lastDIOValue != gpioValue)
+    {
+        /*qint64 now = QDateTime::currentMSecsSinceEpoch();
+        // 5ms 이상 값이 지나야 정상적인 데이터 값으로 인정 채터링 방지
+        if ((now - m_lastDIOTimestamp) < 5) {
+            return;
+        }
+        m_lastDIOTimestamp = now;
+        */
+        qint64 now = QDateTime::currentMSecsSinceEpoch();
+        m_lastDIOValue = gpioValue;
+        int triggerIntervalMs = now - m_lastDIOTimestamp;
+        if (gpioValue == 0)
+        {
+            qDebug() << "GPIO0 is LOW";
+            if (triggerIntervalMs > 50 && triggerIntervalMs < 500)
+            {
+                qDebug() << "GPIO0 is HIGH trigger valid";
+                if (m_laneClassification == "single")
+                {
+                    qDebug() << "GPIO is trigger ACU backward";
+                }
+                else
+                {
+                    qDebug() << "GPIO is trigger MCU off";
+                }
+            }
+            else
+            {
+                 qDebug() << "GPIO0 is HIGH trigger inValid";
+            }
+            //TestTriggerNum(m_usSeqNo);
+        }
+        else
+        {
+            qDebug() << "GPIO0 is HIGH";
+            if (triggerIntervalMs > 500)
+            {
+                qDebug() << "GPIO0 is HIGH trigger valid";
+                if (m_laneClassification == "single")
+                {
+                    qDebug() << "GPIO is trigger ACU forward";
+                    m_triggerNum++;
+                }
+                else
+                {
+                    qDebug() << "GPIO is trigger MCU on";
+                }
+            }
+            else
+            {
+                 qDebug() << "GPIO0 is HIGH trigger inValid";
+            }
+        }
+        m_lastDIOTimestamp = now;
+    }
 }
 
 bool CVDUComm::ServiceStop()
@@ -76,7 +194,7 @@ bool CVDUComm::ServiceStop()
      return true;
 }
 
-void CVDUComm::CheckConnection()
+void CVDUComm::onCheckConnection()
 {
     const int RETRY_INTERVAL_MS = 5000;  // 재시도 간격 (1초)
     const int HEARTBEAT_INTERVAL_MS = 3000;  // 3초마다 하트비트 전송
@@ -153,7 +271,7 @@ bool CVDUComm::ConnectToIPU()
         return false;
     }
 
-    qDebug() << "Connection try IP:" << m_deviceIP << " Port:" << m_port;
+    qDebug() << "VDU Connection try IP:" << m_deviceIP << " Port:" << m_port;
 
     m_pClientSocket->connectToHost(m_deviceIP, m_port);
 
@@ -292,11 +410,15 @@ void CVDUComm::decodeTriggerNum(unsigned char* pucaBuf)
     pVehicleInfo->bitInfoState |= CU_VEHICLE_STATE_TRIGGER_NO;
     pVehicleInfo->ulLastCommunicationTime = CUtil::GetMiliSecTimer();
 
-    pTrigger->uiTriggerNo = htonl(1);
+    //pTrigger->uiTriggerNo = htonl(1);
     memcpy(&pVehicleInfo->pktEntryTriggerNum, pTrigger, sizeof(PACKET_ENTRY_TRIGGER_NUM));
     CMediator::getInstance()->PushBackVehicle(pVehicleInfo);
-    CMediator::getInstance()->NotifyTrigger(pVehicleInfo->pktEntryTriggerNum.uiTriggerNo);
-    qDebug() << "CVDUComm::decodeTriggerNum" << pVehicleInfo->pktEntryTriggerNum.uiTriggerNo;
+    //CMediator::getInstance()->NotifyTrigger(pVehicleInfo->pktEntryTriggerNum.uiTriggerNo);
+#ifdef __NO_IMAGEPROCESSING__
+    QThread::msleep(400);
+    CMediator::getInstance()->SendImageInfo(pVehicleInfo->pktEntryTriggerNum.uiTriggerNo);
+#endif
+    qDebug() << "CVDUComm::DecodeTriggerNum" << pVehicleInfo->pktEntryTriggerNum.uiTriggerNo;
 }
 
 void CVDUComm::decodeStatus(PACKET* pPacket)
@@ -382,7 +504,7 @@ void CVDUComm::TestTriggerNum(unsigned short usSeqNo)
     memset(tTrigger.DUMMY,0,7); // Dummy data
 
     decodeTriggerNum(reinterpret_cast<unsigned char*>(&tTrigger));
-    CMediator::getInstance()->SendImage(tTrigger.uiTriggerNo);
+    CMediator::getInstance()->SendImageInfo(tTrigger.uiTriggerNo);
 }
 
 bool CVDUComm::SendPacket(int iDeviceNo, unsigned short usMsgID, const unsigned char* pData, unsigned short iDataLength) 
@@ -497,18 +619,18 @@ void CVDUComm::SendStatus()
      }
  }
 
- void CVDUComm::OnConnected()
+ void CVDUComm::onConnected()
  {
     qDebug() << "Socket connected.";
     // 연결 성공
     qDebug() << "VDU 연결 성공!";
     m_bConnected = true;
     // Optionally connect signals to the new socket instance
-    // connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::OnReadyRead);
-    // connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::OnDisconnected);
+    // connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::onReadyRead);
+    // connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::onDisconnected);
  }
  
- void CVDUComm::OnReadyRead()
+ void CVDUComm::onReadyRead()
  {
      if (!m_pClientSocket) return;
  
@@ -526,14 +648,14 @@ void CVDUComm::SendStatus()
      }
  }
  
- void CVDUComm::OnDisconnected()
+ void CVDUComm::onDisconnected()
  {
-     qDebug() << "Socket disconnected.";
+     qDebug() << "VDU Socket disconnected.";
      m_bConnected = false;
      // Optionally disconnect signals from the old socket instance
      // if(m_pClientSocket) {
-     //     disconnect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::OnReadyRead);
-     //     disconnect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::OnDisconnected);
+     //     disconnect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVDUComm::onReadyRead);
+     //     disconnect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVDUComm::onDisconnected);
      // }
      // HandleConnectionFailure will clean up the socket pointer later in the connect loop
  }

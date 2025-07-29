@@ -1,4 +1,4 @@
-#include "SerialPort.h"
+﻿#include "SerialPort.h"
 #include "Code/CdsLicComm/CdsLicDlg.h"
 #include "Code/Mediator.h"
 #include "Code/CdsLicComm/CdsLicComm.h"
@@ -205,12 +205,12 @@ bool CSerialPort::openSerialPort(bool isReconnect, int portToTry)
     } else {
         // Try available ports in sequence
         // ttyUSB0 시도
-        SetPort(0);
-        qDebug() << "Attempting to connect to /dev/ttyUSB0";
+        SetPort(CMediator::getInstance()->getCdsLicComm()->getPort());
+        qDebug() << "Attempting to connect to /dev/ttyUSB8";
         if (Connect()) {
             qDebug() << "Connection to ttyUSB0 successful";
             bState = true;
-        } else {
+        }/* else {
             // ttyUSB1 시도
             SetPort(1);
             qDebug() << "Connection to ttyUSB0 failed, trying ttyUSB1";
@@ -222,7 +222,7 @@ bool CSerialPort::openSerialPort(bool isReconnect, int portToTry)
                 emit serialConnectionStatusChanged(false, "Failed to connect to any port");
                 return false;
             }
-        }
+        }*/
     }
 
     // 연결 성공 시 설정 정보 출력

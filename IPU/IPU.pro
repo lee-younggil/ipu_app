@@ -1,4 +1,4 @@
-QT       += core gui network serialport testlib
+﻿QT       += core gui network serialport testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -44,7 +44,7 @@ LIBS += \
 #    -L/usr/local/lib \
     -L$$PV_LIBRARY_PATH -lPvAppUtils -lPtConvertersLib -lPvBase -lPvBuffer -lPvGenICam -lPvStream -lPvDevice \
                         -lPvTransmitter -lPvVirtualDevice -lPvPersistence -lPvSerial -lPvSystem -lPvCameraBridge -lPvGUI -lPvCodec \
-                        -lswscale -lavcodec -lavformat -lavutil
+                        -lswscale -lavcodec -lavformat -lavutil -lgpiod
 
 
 #    -L$$CODEC_LIB_PATH -lswscale -lavcodec -lavformat -lavutil

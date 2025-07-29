@@ -1,4 +1,4 @@
-#include "Mediator.h"
+﻿#include "Mediator.h"
 #include "IPUDefine.h"
 #include <QObject>
 #include "IFService.h"
@@ -21,7 +21,6 @@ CMediator::CMediator(CMediator *hMediator, const QString &strLogSource)
     , m_pConfig(nullptr)
 {
     m_pConfig = new CIPUConfig();
-    // 持失 貢 去系 授辞 掻推!!!
     m_hLog = new CLog(this, "LOG");
     m_hLog->SetLogPath(m_strDrive+m_strAppFolder+"/"+m_strLogFolder+"/");
     m_hLog->initialization();
@@ -59,22 +58,29 @@ void CMediator::Log(const QString &strLog, const void *pPacket, unsigned int uiP
 
 void CMediator::initialization()
 {
+    qDebug() << "CMediator::initialization() start";
     // CCdsLicComm 초기화
     m_CdsLicComm.initialization();
     //m_CdsLicComm.SetPort(0);
     //m_CdsLicComm.SetBaudRate(115200);
-    m_CdsLicComm.SetPort(m_pConfig->GetPortLic().toInt());  // IPUConfig에서 설정한 포트 사용
-    m_CdsLicComm.SetBaudRate(m_pConfig->GetPortBaud().toInt());  // IPUConfig에서 설정한 baudrate 사용
+    m_CdsLicComm.SetPort(m_pConfig->getPortLic().toInt());  // IPUConfig에서 설정한 포트 사용
+    m_CdsLicComm.SetBaudRate(m_pConfig->getPortBaud().toInt());  // IPUConfig에서 설정한 baudrate 사용
 
     // CVVPComm 초기화
     m_VvpComm.initialization();
-    m_VvpComm.SetDeviceIP(m_pConfig->GetVVPDeviceIP());
-    m_VvpComm.SetPort(m_pConfig->GetVVPDevicePort().toInt());
+    m_VvpComm.SetDeviceIP(m_pConfig->getVVPDeviceIP());
+    m_VvpComm.SetPort(m_pConfig->getVVPDevicePort().toInt());
 
-    // CVduComm 초기화
-    m_VduComm.initialization();
-    m_VduComm.SetDeviceIP(m_pConfig->GetVduDeviceIP());
-    m_VduComm.SetPort(m_pConfig->GetVduDevicePort().toInt());
+    QString laneClassification = m_pConfig->getLaneClassification();
+    if (laneClassification == "multi")
+    {
+        // CvduComm 초기화
+        m_VduComm.initialization();
+        m_VduComm.SetDeviceIP(m_pConfig->getVduDeviceIP());
+        m_VduComm.SetPort(m_pConfig->getVduDevicePort().toInt());
+        m_VduComm.ServiceStart();
+        qDebug() << "VDU service started";
+    }
 
 }
 
@@ -93,10 +99,14 @@ bool CMediator::ServiceStart()
         return false;
     }
 
-    if (!m_VduComm.ServiceStart())
+    if (m_pConfig->getLaneClassification() == "multi")
     {
-        Log("VduComm", "Failed to start VduComm service");
-        return false;
+        // VDUComm 서비스 시작
+        if (!m_VduComm.initialization())
+        {
+            Log("VDUComm", "Failed to initialize VDUComm");
+            return false;
+        }
     }
     
     return true;
@@ -141,9 +151,9 @@ void CMediator::NotifyTrigger(unsigned int uiTriggerNo)
     // Notify the trigger number to the appropriate handler
 }
 
-void CMediator::SendImage(unsigned int uiTriggerNo)
+void CMediator::SendImageInfo(unsigned int uiTriggerNo)
 {
-    qDebug() << "SendImage called with TriggerNo:" << uiTriggerNo;
+    qDebug() << "sendImageInfo called with TriggerNo:" << uiTriggerNo;
     VEHICLE_INFO* ptVehicleInfo = GetVehicleInfo(uiTriggerNo);
     PACKET_IMAGE tImage;
     memset(&tImage, 0, sizeof(PACKET_IMAGE));

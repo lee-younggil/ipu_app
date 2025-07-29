@@ -1,4 +1,4 @@
-#include "VVPComm.h"
+﻿#include "VVPComm.h"
 #include <QTcpSocket>
 #include <QQueue>
 #include <QThread>
@@ -8,7 +8,7 @@
 CVVPComm::CVVPComm() : m_pClientSocket(nullptr), m_pCheckConnectionTimer(nullptr), m_bRunning(false), m_bConnected(false)
 {
     m_pCheckConnectionTimer = new QTimer(this);
-    connect(m_pCheckConnectionTimer, &QTimer::timeout, this, &CVVPComm::onTimeout);
+    connect(m_pCheckConnectionTimer, &QTimer::timeout, this, &CVVPComm::onCheckConnection);
 }
 
 CVVPComm::~CVVPComm()
@@ -35,9 +35,9 @@ bool CVVPComm::ServiceStart()
     CreateSocket();
     // StartAsyncReceive(); // Removed call
     // Connect socket signals directly here
-    connect(m_pClientSocket, &QTcpSocket::connected, this, &CVVPComm::OnConnected);
-    connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::OnReadyRead);
-    connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::OnDisconnected);
+    connect(m_pClientSocket, &QTcpSocket::connected, this, &CVVPComm::onConnected);
+    connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::onReadyRead);
+    connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::onDisconnected);
     
     ConnectToIPU();
     qDebug() << "CVVPComm::ServiceStart - Socket connected signal connected.";
@@ -49,14 +49,6 @@ bool CVVPComm::ServiceStart()
     m_pCheckConnectionTimer->start(5000);
     
     return true;
-}
-
-void CVVPComm::onTimeout()
-{
-    // Handle timeout event
-    //qDebug() << "Timeout occurred!";
-    CheckConnection();
-    // Add your timeout handling code here
 }
 
 bool CVVPComm::ServiceStop()
@@ -71,11 +63,13 @@ bool CVVPComm::ServiceStop()
     return true;
 }
 
-void CVVPComm::CheckConnection()
+void CVVPComm::onCheckConnection()
 {
     const int RETRY_INTERVAL_MS = 5000;  // 재시도 간격 (1초)
     const int HEARTBEAT_INTERVAL_MS = 3000;  // 3초마다 하트비트 전송
     const int LONG_HEARTBEAT_INTERVAL_MS = 60000;  // 1분마다 추가 하트비트 전송
+
+    //qDebug() << "VVP CheckConnection - m_bRunning:" << m_bRunning;
 
     if (!m_bRunning)
     {
@@ -150,7 +144,7 @@ bool CVVPComm::ConnectToIPU()
         return false;
     }
 
-    qDebug() << "Connection try IP:" << m_deviceIP << " Port:" << m_port;
+    qDebug() << "VVP Connection try IP:" << m_deviceIP << " Port:" << m_port;
 
     m_pClientSocket->connectToHost(m_deviceIP, m_port);
 
@@ -207,7 +201,7 @@ void CVVPComm::decode(const QByteArray& data)
             if (packetLength < PACKET_LENGTH_MIN || packetLength > PACKET_LENGTH_MAX)
             {
                 currentIndex = iStartSTX + 1;
-                qDebug() << "incorrect packet length:" << packetLength;
+                qDebug() << "VVP incorrect packet length:" << packetLength;
                 continue;
             }
             else if( length < packetLength )
@@ -265,6 +259,10 @@ void CVVPComm::decode(const QByteArray& data)
                                 break;
                             case MsgID_HeartBeat:
                             case MsgID_Command:
+                                break;
+                            case MsgID_ImageResp:
+                                // Handle image response
+                                qDebug() << "0x1401 Received Image Response";
                                 break;
                             default:
                                 qDebug() << "Unknown VVP message ID:" << usMsgID;
@@ -360,7 +358,7 @@ bool CVVPComm::SendPacket(int iDeviceNo, unsigned short usMsgID, const unsigned 
     //pPacket->byteSTX = STX;
     message[0] = STX;
 	pPacket->usSeqNo = htons(GetSeqNo( iDeviceNo ));
-    unsigned short seqNo = GetSeqNo(iDeviceNo);
+    //unsigned short seqNo = GetSeqNo(iDeviceNo);
     //message[1] = (seqNo) >> 8;
     //message[2] = seqNo & 0xFF;//GetSeqNo( iDeviceNo );
 	pPacket->byteRetryCnt = 0;
@@ -385,7 +383,7 @@ bool CVVPComm::SendPacket(int iDeviceNo, unsigned short usMsgID, const unsigned 
     //message[iPacketSize - 1] = ETX;
 
     QByteArray byteArray(message, iPacketSize);
-    //emit packetSent(byteArray); // Emit the signal with the sent data
+    emit packetSent(byteArray); // Emit the signal with the sent data
     //qDebug() << "SendPacket - Hex Data:" << byteArray.toHex(' ').toUpper();
 
     qint64 bytesWritten = m_pClientSocket->write(message, iPacketSize);
@@ -463,18 +461,18 @@ void CVVPComm::SendStatus()
     }
 }
 
-void CVVPComm::OnConnected()
+void CVVPComm::onConnected()
 {
    qDebug() << "Socket connected.";
    // 연결 성공
    qDebug() << "VVP 연결 성공!";
    m_bConnected = true;
    // Optionally connect signals to the new socket instance
-   // connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::OnReadyRead);
-   // connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::OnDisconnected);
+   // connect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::onReadyRead);
+   // connect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::onDisconnected);
 }
 
-void CVVPComm::OnReadyRead()
+void CVVPComm::onReadyRead()
 {
     if (!m_pClientSocket) return;
 
@@ -491,14 +489,14 @@ void CVVPComm::OnReadyRead()
     }
 }
 
-void CVVPComm::OnDisconnected()
+void CVVPComm::onDisconnected()
 {
-    qDebug() << "Socket disconnected.";
+    qDebug() << "VVP Socket disconnected.";
     m_bConnected = false;
     // Optionally disconnect signals from the old socket instance
     // if(m_pClientSocket) {
-    //     disconnect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::OnReadyRead);
-    //     disconnect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::OnDisconnected);
+    //     disconnect(m_pClientSocket, &QTcpSocket::readyRead, this, &CVVPComm::onReadyRead);
+    //     disconnect(m_pClientSocket, &QTcpSocket::disconnected, this, &CVVPComm::onDisconnected);
     // }
     // HandleConnectionFailure will clean up the socket pointer later in the connect loop
 }

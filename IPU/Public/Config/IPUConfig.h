@@ -1,4 +1,4 @@
-#ifndef IPUCONFIG_H
+﻿#ifndef IPUCONFIG_H
 #define IPUCONFIG_H
 
 #include <QObject>
@@ -25,8 +25,8 @@ protected:
 private slots:
     void OnSave();
     void OnCancel();
-    void UpdateUIFromSettings();
-    void UpdateSettingsFromUI();
+    void updateUIFromSettings();
+    void updateSettingsFromUI();
 
 private:
     Ui::IPUConfig* ui;
@@ -76,6 +76,9 @@ private:
     QString strDefaultConfigFileName;
     QString strDefaultConfigPortLic;
     QString strDefaultConfigPortBaud;
+    // Lane Classification
+    QString strConfigLaneClassification;
+    QString strDefaultConfigLaneClassification;
 
     // Default Front Camera
     QString strDefaultConfigFrontLeftCamera;
@@ -106,33 +109,36 @@ private:
     QString strDefaultConfigRemoteServerPort;
 
 public:
-    void LoadDefaultConfig();
-    void LoadConfig();
-    void SaveConfig();
+    void loadDefaultConfig();
+    void loadConfig();
+    void saveConfig();
 
     // Getter functions
-    QString GetPortLic() const { return strConfigPortLic; }
-    QString GetPortBaud() const { return strConfigPortBaud; }
+    QString getPortLic() const { return strConfigPortLic; }
+    QString getPortBaud() const { return strConfigPortBaud; }
 
     // Front Camera Getters
-    QString GetFrontLeftCamera() const { return strConfigFrontLeftCamera; }
-    QString GetFrontRightCamera() const { return strConfigFrontRightCamera; }
-    QString GetFrontTopCamera() const { return strConfigFrontTopCamera; }
-    QString GetFrontBottomCamera() const { return strConfigFrontBottomCamera; }
+    QString getFrontLeftCamera() const { return strConfigFrontLeftCamera; }
+    QString getFrontRightCamera() const { return strConfigFrontRightCamera; }
+    QString getFrontTopCamera() const { return strConfigFrontTopCamera; }
+    QString getFrontBottomCamera() const { return strConfigFrontBottomCamera; }
 
     // Rear Camera Getters
-    QString GetRearLeftCamera() const { return strConfigRearLeftCamera; }
-    QString GetRearRightCamera() const { return strConfigRearRightCamera; }
-    QString GetRearTopCamera() const { return strConfigRearTopCamera; }
-    QString GetRearBottomCamera() const { return strConfigRearBottomCamera; }
+    QString getRearLeftCamera() const { return strConfigRearLeftCamera; }
+    QString getRearRightCamera() const { return strConfigRearRightCamera; }
+    QString getRearTopCamera() const { return strConfigRearTopCamera; }
+    QString getRearBottomCamera() const { return strConfigRearBottomCamera; }
 
     // VVP Device Getters
-    QString GetVVPDeviceIP() const { return strConfigVVPDeviceIP; }
-    QString GetVVPDevicePort() const { return strConfigVVPDevicePort; }
+    QString getVVPDeviceIP() const { return strConfigVVPDeviceIP; }
+    QString getVVPDevicePort() const { return strConfigVVPDevicePort; }
 
     // VDU Device Getters
-    QString GetVduDeviceIP() const { return strConfigVduDeviceIP; }
-    QString GetVduDevicePort() const { return strConfigVduDevicePort; }
+    QString getVduDeviceIP() const { return strConfigVduDeviceIP; }
+    QString getVduDevicePort() const { return strConfigVduDevicePort; }
+
+    // Lane Type Getter
+    QString getLaneClassification() const { return strConfigLaneClassification; }
 };
 
 #endif // IPUCONFIG_H

@@ -1,6 +1,11 @@
-#ifndef COMPLETIONSTRUCT_H
+﻿#ifndef COMPLETIONSTRUCT_H
 #define COMPLETIONSTRUCT_H
 
+#define __TEST__
+
+#ifdef __TEST__
+#define __NO_IMAGEPROCESSING__
+#endif
 #include "Util/Util.h"
 
 #define DEVICE_CODE ( 0x04 )

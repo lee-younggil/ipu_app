@@ -1,8 +1,9 @@
-#include "IPUConfig.h"
+﻿#include "IPUConfig.h"
 #include <QSettings>
 #include <QFile>
 #include <QDebug>
 #include "ui_IPUConfig.h"
+#include <QMessageBox>
 
 CIPUConfig::CIPUConfig(QWidget *parent) : QWidget(parent)
     , ui(new Ui::IPUConfig)
@@ -34,12 +35,39 @@ CIPUConfig::CIPUConfig(QWidget *parent) : QWidget(parent)
     strDefaultConfigVduDeviceIP = "";
     strDefaultConfigVduDevicePort = "20365";
 
+    // Lane type default
+    strDefaultConfigLaneClassification = "single";
+    strConfigLaneClassification = strDefaultConfigLaneClassification;
+
     // Connect signals
     connect(ui->pushButtonSave, &QPushButton::clicked, this, &CIPUConfig::OnSave);
     connect(ui->pushButtonCancel, &QPushButton::clicked, this, &CIPUConfig::OnCancel);
+    // 차로 분류 변경 시 안내 메시지 (두 라디오버튼 모두에 적용)
+    auto laneClassificationChangeHandler = [this](QRadioButton* radio, const QString& laneClassification) {
+        connect(radio, &QRadioButton::clicked, this, [this, laneClassification, radio](bool checked){
+            if (checked && strConfigLaneClassification != laneClassification) {
+                int ret = QMessageBox::question(this, "알림", "차로 분류 변경은 프로그램 종료 후 재시작시 적용됩니다. \n하시겠습니까?", QMessageBox::Yes | QMessageBox::No);
+                if (ret == QMessageBox::Yes) {
+                    // 설정값을 변경하고 저장 후 프로그램 재시작
+                    strConfigLaneClassification = laneClassification;
+                    saveConfig();
+                    qApp->exit(1000); // 재시작 신호(1000)로 종료
+                } else {
+                    // 롤백: 이전 상태로 UI 복원
+                    if (strConfigLaneClassification == "single") {
+                        ui->radioButtonSingleLane->setChecked(true);
+                    } else {
+                        ui->radioButtonMultiLane->setChecked(true);
+                    }
+                }
+            }
+        });
+    };
+    laneClassificationChangeHandler(ui->radioButtonSingleLane, "single");
+    laneClassificationChangeHandler(ui->radioButtonMultiLane, "multi");
 
-    LoadDefaultConfig();
-    LoadConfig();  // 프로그램 시작시 설정 로드
+    loadDefaultConfig();
+    loadConfig();  // 프로그램 시작시 설정 로드
 }
 
 CIPUConfig::~CIPUConfig()
@@ -47,7 +75,7 @@ CIPUConfig::~CIPUConfig()
     delete ui;
 }
 
-void CIPUConfig::LoadDefaultConfig()
+void CIPUConfig::loadDefaultConfig()
 {
     // Load default configuration
     strConfigFileName = strDefaultConfigFileName;
@@ -70,22 +98,23 @@ void CIPUConfig::LoadDefaultConfig()
     strConfigVVPDeviceIP = strDefaultConfigVVPDeviceIP;
     strConfigVVPDevicePort = strDefaultConfigVVPDevicePort;
     
+    // Lane type default
+    strConfigLaneClassification = strDefaultConfigLaneClassification;
+
     // Update UI
-    UpdateUIFromSettings();
+    updateUIFromSettings();
 }
 
-void CIPUConfig::LoadConfig()
+void CIPUConfig::loadConfig()
 {
     qDebug() << "Loading config from file: " << strConfigFileName;
-    return;
-
     // Check if config file exists
     if (!QFile::exists(strConfigFileName))
     {
         // If file doesn't exist, load default values
-        LoadDefaultConfig();
+        loadDefaultConfig();
         // Create new config file with default values
-        SaveConfig();
+        saveConfig();
         return;
     }
 
@@ -116,6 +145,9 @@ void CIPUConfig::LoadConfig()
     strConfigVduDeviceIP = settings.value("VduDevice/IP", strDefaultConfigVduDeviceIP).toString();
     strConfigVduDevicePort = settings.value("VduDevice/Port", strDefaultConfigVduDevicePort).toString();
 
+    // Read Lane type
+    strConfigLaneClassification = settings.value("LaneClassification/Type", strDefaultConfigLaneClassification).toString();
+
     // Read Unity Server values
     strConfigUnityServerIP = settings.value("UnityServer/IP", strDefaultConfigUnityServerIP).toString();
     strConfigUnityServerPort = settings.value("UnityServer/Port", strDefaultConfigUnityServerPort).toString();
@@ -125,13 +157,13 @@ void CIPUConfig::LoadConfig()
     strConfigRemoteServerPort = settings.value("RemoteServer/Port", strDefaultConfigRemoteServerPort).toString();
 
     // Update UI with loaded values
-    UpdateUIFromSettings();
+    updateUIFromSettings();
 }
 
-void CIPUConfig::SaveConfig()
+void CIPUConfig::saveConfig()
 {
     // Update settings from UI before saving
-    UpdateSettingsFromUI();
+    updateSettingsFromUI();
 
     // Save configuration to INI file
     QSettings settings(strConfigFileName, QSettings::IniFormat);
@@ -160,6 +192,9 @@ void CIPUConfig::SaveConfig()
     settings.setValue("VduDevice/IP", strConfigVduDeviceIP);
     settings.setValue("VduDevice/Port", strConfigVduDevicePort);
 
+    // Write Lane type
+    settings.setValue("LaneClassification/Type", strConfigLaneClassification);
+
     // Write Unity Server values
     settings.setValue("UnityServer/IP", strConfigUnityServerIP);
     settings.setValue("UnityServer/Port", strConfigUnityServerPort);
@@ -171,16 +206,17 @@ void CIPUConfig::SaveConfig()
 
 void CIPUConfig::OnSave()
 {
-    SaveConfig();
+    saveConfig();
+    QMessageBox::information(this, "설정 저장", "프로그램 재시작후 적용됩니다.");
 }
 
 void CIPUConfig::OnCancel()
 {
     // Reload the current settings and update UI
-    LoadConfig();
+    loadConfig();
 }
 
-void CIPUConfig::UpdateUIFromSettings()
+void CIPUConfig::updateUIFromSettings()
 {
     if (ui)
     {
@@ -212,6 +248,10 @@ void CIPUConfig::UpdateUIFromSettings()
         ui->lineEditVduDeviceIP->setText(strConfigVduDeviceIP);
         ui->spinBoxVduDevicePort->setValue(strConfigVduDevicePort.toInt());
         
+        // Update Lane Type radio buttons
+        if (ui->radioButtonSingleLane) ui->radioButtonSingleLane->setChecked(strConfigLaneClassification == "single");
+        if (ui->radioButtonMultiLane) ui->radioButtonMultiLane->setChecked(strConfigLaneClassification == "multi");
+
         // Update UnityServer settings
         ui->lineEditUnityServerIP->setText(strConfigUnityServerIP);
         ui->spinBoxUnityServerPort->setValue(strConfigUnityServerPort.toInt());
@@ -222,7 +262,7 @@ void CIPUConfig::UpdateUIFromSettings()
     }
 }
 
-void CIPUConfig::UpdateSettingsFromUI()
+void CIPUConfig::updateSettingsFromUI()
 {
     if (ui)
     {
@@ -249,6 +289,12 @@ void CIPUConfig::UpdateSettingsFromUI()
         // Update VDU Device settings
         strConfigVduDeviceIP = ui->lineEditVduDeviceIP->text();
         strConfigVduDevicePort = QString::number(ui->spinBoxVduDevicePort->value());
+
+        // Update Lane Type radio buttons
+        if (ui->radioButtonSingleLane && ui->radioButtonSingleLane->isChecked())
+            strConfigLaneClassification = "single";
+        else if (ui->radioButtonMultiLane && ui->radioButtonMultiLane->isChecked())
+            strConfigLaneClassification = "multi";
 
         // Update UnityServer settings
         strConfigUnityServerIP = ui->lineEditUnityServerIP->text();

@@ -1,4 +1,4 @@
-#ifndef MEDIATOR_H
+﻿#ifndef MEDIATOR_H
 #define MEDIATOR_H
 
 #include <QObject>
@@ -41,7 +41,7 @@ protected:
     void Log( const QString &strLog, const void *pPacket = NULL, unsigned int uiPacketLength = 0 );
 
 public:
-    virtual void initialization(void);
+    virtual void initialization();
     virtual bool ServiceStart(void);
     virtual bool ServiceStop(void);
 
@@ -72,12 +72,13 @@ public:
     
     LOG_DATA *GetLogData();
 
-    CCdsLicComm* getCdsLicComm() { return &m_CdsLicComm; }
     CVVPComm* getVvpComm() { return &m_VvpComm; }
+    CCdsLicComm* getCdsLicComm() { return &m_CdsLicComm; }
     CVDUComm* getVduComm() { return &m_VduComm; }
+    CIPUConfig* getConfig() { return m_pConfig; }
     void PushBackVehicle( VEHICLE_INFO *ptVehicleInfo );
     void NotifyTrigger(unsigned int uiTriggerNo);
-    void SendImage(unsigned int uiTriggerNo);
+    void SendImageInfo(unsigned int uiTriggerNo);
     VEHICLE_INFO* GetVehicleInfo(unsigned int uiTriggerNo);
 
     QMutex m_cslistVehicleInfo;
